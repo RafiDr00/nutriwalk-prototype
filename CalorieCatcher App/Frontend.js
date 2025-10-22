@@ -71,21 +71,28 @@ analyzeBtn.onclick = async () => {
 // LOGIN / REGISTER
 // -------------------
 loginBtn.onclick = () => {
+  loginForm.classList.toggle("show");
   loginForm.classList.toggle("hidden");
   registerForm.classList.add("hidden");
+  registerForm.classList.remove("show");
 };
 
 registerBtn.onclick = () => {
+  registerForm.classList.toggle("show");
   registerForm.classList.toggle("hidden");
   loginForm.classList.add("hidden");
+  loginForm.classList.remove("show");
 };
 
-logoutBtn.onclick = () => {
-  localStorage.removeItem("username");
-  alert("Logged out successfully!");
-  logoutBtn.classList.add("hidden");
-  loginBtn.classList.remove("hidden");
-  registerBtn.classList.remove("hidden");
+// Cancel buttons
+document.getElementById("cancelLogin").onclick = () => {
+  loginForm.classList.add("hidden");
+  loginForm.classList.remove("show");
+};
+
+document.getElementById("cancelRegister").onclick = () => {
+  registerForm.classList.add("hidden");
+  registerForm.classList.remove("show");
 };
 
 // Confirm login
