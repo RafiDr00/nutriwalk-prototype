@@ -1,8 +1,8 @@
-# NutriWalk Backend - Quick Verification Dashboard
+# CaloriCatcher Backend - Quick Verification Dashboard
 # Run this to see if everything is working
 
 Write-Host "`n╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║          🏃‍♂️ NUTRIWALK BACKEND STATUS CHECK 🥗                    ║" -ForegroundColor Cyan
+Write-Host "║          🏃‍♂️ CALORICATCHER BACKEND STATUS CHECK 🥗                    ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
 
 $baseUrl = "http://localhost:3000"

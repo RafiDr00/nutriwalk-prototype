@@ -1,12 +1,15 @@
 /**
  * Authentication Routes
- * Handles user registration and login
+ * Handles user registration, login, and logout
  */
 
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { hashPassword, comparePassword } from '../utils/hash.js';
-import { createSession } from '../middleware/authMiddleware.js';
+import { createSession, deleteSession, authenticate } from '../middleware/authMiddleware.js';
+import { validateRegistration, validateLogin } from '../middleware/validation.js';
+import { BadRequestError, UnauthorizedError, ConflictError } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -17,38 +20,13 @@ const users = new Map();
  * POST /auth/register
  * Register a new user with username and password
  */
-router.post('/register', async (req, res) => {
+router.post('/register', validateRegistration, async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    // Validation
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Username and password are required'
-      });
-    }
-
-    if (username.length < 3) {
-      return res.status(400).json({
-        success: false,
-        message: 'Username must be at least 3 characters long'
-      });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters long'
-      });
-    }
-
     // Check if user already exists
     if (users.has(username.toLowerCase())) {
-      return res.status(400).json({
-        success: false,
-        message: 'Username already exists'
-      });
+      throw new ConflictError('Username already exists');
     }
 
     // Hash password
@@ -58,10 +36,13 @@ router.post('/register', async (req, res) => {
     users.set(username.toLowerCase(), {
       username,
       password: hashedPassword,
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
 
-    res.status(200).json({
+    logger.success(`✅ New user registered: ${username}`);
+
+    res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
@@ -69,11 +50,7 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error during registration'
-    });
+    next(error);
   }
 });
 
@@ -81,36 +58,22 @@ router.post('/register', async (req, res) => {
  * POST /auth/login
  * Authenticate user and return session token
  */
-router.post('/login', async (req, res) => {
+router.post('/login', validateLogin, async (req, res, next) => {
   try {
     const { username, password } = req.body;
-
-    // Validation
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Username and password are required'
-      });
-    }
 
     // Find user
     const user = users.get(username.toLowerCase());
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid username or password'
-      });
+      throw new UnauthorizedError('Invalid username or password');
     }
 
     // Validate password
     const isValidPassword = await comparePassword(password, user.password);
 
     if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid username or password'
-      });
+      throw new UnauthorizedError('Invalid username or password');
     }
 
     // Generate session token
@@ -118,6 +81,8 @@ router.post('/login', async (req, res) => {
 
     // Create session
     createSession(token, user.username);
+
+    logger.success(`✅ User logged in: ${username}`);
 
     res.status(200).json({
       success: true,
@@ -128,11 +93,34 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error during login'
+    next(error);
+  }
+});
+
+/**
+ * POST /auth/logout
+ * Logout user and invalidate session token
+ * Protected route - requires authentication
+ */
+router.post('/logout', authenticate, (req, res, next) => {
+  try {
+    const { token, username } = req.user;
+
+    // Delete session
+    const deleted = deleteSession(token);
+
+    if (!deleted) {
+      throw new BadRequestError('Session not found');
+    }
+
+    logger.info(`👋 User logged out: ${username}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Logout successful'
     });
+  } catch (error) {
+    next(error);
   }
 });
 

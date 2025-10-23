@@ -6,6 +6,9 @@
 import express from 'express';
 import { getFoodByName, foodExists } from '../data/foods.js';
 import { authenticate } from '../middleware/authMiddleware.js';
+import { validateMealLog } from '../middleware/validation.js';
+import { NotFoundError } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -39,25 +42,14 @@ function generateStepRecommendation() {
  * Log a user's meal with automatic calorie lookup
  * Protected route - requires authentication
  */
-router.post('/logMeal', authenticate, (req, res) => {
+router.post('/logMeal', authenticate, validateMealLog, (req, res, next) => {
   try {
     const { foodName } = req.body;
     const username = req.user.username;
 
-    // Validation
-    if (!foodName) {
-      return res.status(400).json({
-        success: false,
-        message: 'Food name is required'
-      });
-    }
-
     // Check if food exists
     if (!foodExists(foodName)) {
-      return res.status(404).json({
-        success: false,
-        message: `Food "${foodName}" not found in database`
-      });
+      throw new NotFoundError(`Food "${foodName}" not found in database`);
     }
 
     // Get food details (O(1) lookup)
@@ -87,23 +79,22 @@ router.post('/logMeal', authenticate, (req, res) => {
     userLog.totalSteps += recommendedSteps;
     userLog.meals.push(mealEntry);
 
-    res.status(200).json({
+    logger.info(`🍽️  Meal logged for ${username}: ${food.name} (${food.calories} cal)`);
+
+    res.status(201).json({
       success: true,
       message: 'Meal logged successfully',
       data: {
         meal: mealEntry,
         summary: {
           totalCalories: userLog.totalCalories,
-          totalSteps: userLog.totalSteps
+          totalSteps: userLog.totalSteps,
+          mealCount: userLog.meals.length
         }
       }
     });
   } catch (error) {
-    console.error('Error logging meal:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error while logging meal'
-    });
+    next(error);
   }
 });
 
@@ -112,7 +103,7 @@ router.post('/logMeal', authenticate, (req, res) => {
  * Return total calories, total steps, and meal history
  * Protected route - requires authentication
  */
-router.get('/progress', authenticate, (req, res) => {
+router.get('/progress', authenticate, (req, res, next) => {
   try {
     const username = req.user.username;
 
@@ -133,11 +124,7 @@ router.get('/progress', authenticate, (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching progress:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error while fetching progress'
-    });
+    next(error);
   }
 });
 

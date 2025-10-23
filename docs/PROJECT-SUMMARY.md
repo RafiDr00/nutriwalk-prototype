@@ -1,4 +1,4 @@
-# 🎯 NutriWalk Prototype - Complete Summary
+# 🎯 CaloriCatcher Prototype - Complete Summary
 
 ## ✅ Project Status: READY FOR HACKATHON
 

@@ -1,12 +1,13 @@
 {
-  "name": "nutriwalk-prototype",
+  "name": "caloricatcher-prototype",
   "version": "1.0.0",
-  "description": "NutriWalk Prototype - Hackathon Ready",
+  "description": "CaloriCatcher Prototype - Hackathon Ready",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "test": "node tests/test-api.js"
   },
   "keywords": ["nutrition", "fitness", "health"],
   "author": "",
@@ -15,6 +16,10 @@
     "express": "^4.18.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1"
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Comprehensive NutriWalk Backend Verification Script
+ * Comprehensive CaloriCatcher Backend Verification Script
  * Tests every endpoint and shows detailed pass/fail results
  */
 
@@ -355,7 +355,7 @@ async function testPerformance() {
 async function runAllTests() {
   console.clear();
   
-  printHeader('🏃‍♂️ NUTRIWALK BACKEND - COMPREHENSIVE VERIFICATION 🥗');
+  printHeader('🏃‍♂️ CALORICATCHER BACKEND - COMPREHENSIVE VERIFICATION 🥗');
   
   console.log(`${colors.yellow}Testing server at: ${BASE_URL}${colors.reset}\n`);
   

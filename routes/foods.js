@@ -12,7 +12,7 @@ const router = express.Router();
  * GET /foods
  * Return all preloaded foods with calories and image URLs
  */
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
   try {
     const foods = getAllFoods();
 
@@ -25,11 +25,7 @@ router.get('/', (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching foods:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error while fetching foods'
-    });
+    next(error);
   }
 });
 

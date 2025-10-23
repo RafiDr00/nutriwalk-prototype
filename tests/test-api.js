@@ -1,5 +1,5 @@
 /**
- * NutriWalk Backend API Test Examples
+ * CaloriCatcher Backend API Test Examples
  * 
  * You can run these tests using any HTTP client:
  * - Postman
@@ -125,7 +125,7 @@ async function testProtectedRouteWithoutAuth() {
 
 // Run all tests
 async function runAllTests() {
-  console.log('🚀 Starting NutriWalk Backend API Tests...\n');
+  console.log('🚀 Starting CaloriCatcher Backend API Tests...\n');
   console.log('='.repeat(60));
   
   try {
@@ -140,7 +140,7 @@ async function runAllTests() {
     
     console.log('\n' + '='.repeat(60));
     console.log('✅ All tests completed!');
-    console.log('\n🎉 Your NutriWalk backend is fully functional!\n');
+    console.log('\n🎉 Your CaloriCatcher backend is fully functional!\n');
     
   } catch (error) {
     console.error('\n❌ Test failed:', error);

@@ -1,140 +1,277 @@
-# NutriWalk Prototype 🏃‍♂️🥗
+# CaloriCatcher Backend 🏃‍♂️🥗# CaloriCatcher Prototype 🏃‍♂️🥗
 
-A clean, optimized, and hackathon-ready Node.js backend for the NutriWalk Prototype application. This backend provides authentication, food catalog, and meal logging functionality with step recommendations.
 
-## 🚀 Features
 
-- **Secure Authentication**: Token-based auth with bcrypt password hashing
-- **Fast Food Lookups**: O(1) lookup performance using Maps
-- **Meal Logging**: Automatic calorie tracking with step recommendations
+> A production-ready, secure Express.js backend for the CaloriCatcher applicationA clean, optimized, and hackathon-ready Node.js backend for the CaloriCatcher Prototype application. This backend provides authentication, food catalog, and meal logging functionality with step recommendations.
+
+
+
+## 🚀 Quick Start## 🚀 Features
+
+
+
+```bash- **Secure Authentication**: Token-based auth with bcrypt password hashing
+
+# Install dependencies- **Fast Food Lookups**: O(1) lookup performance using Maps
+
+npm install- **Meal Logging**: Automatic calorie tracking with step recommendations
+
 - **Progress Tracking**: View total calories, steps, and meal history
-- **In-Memory Storage**: Rapid prototyping without database setup
-- **CORS Enabled**: Ready for frontend integration
+
+# Create environment file- **In-Memory Storage**: Rapid prototyping without database setup
+
+cp .env.example .env- **CORS Enabled**: Ready for frontend integration
+
 - **Modular Architecture**: Easy to expand and maintain
-- **Production Ready**: Deploy to Render, Railway, or Heroku
+
+# Start development server- **Production Ready**: Deploy to Render, Railway, or Heroku
+
+npm run dev
 
 ## 📋 Prerequisites
 
-- Node.js (v14 or higher)
-- npm or yarn
+# Start production server
 
-## 🛠️ Installation
+npm start- Node.js (v14 or higher)
 
-1. **Install dependencies:**
+```- npm or yarn
+
+
+
+Server runs on: **http://localhost:3000**## 🛠️ Installation
+
+
+
+## 📋 Features1. **Install dependencies:**
+
   ```bash
-  npm install
-  ```
 
-2. **Start the server:**
-  ```bash
-  npm start
-  ```
+- ✅ **Token-based Authentication** with bcrypt password hashing  npm install
 
-  For development with auto-reload:
-  ```bash
+- ✅ **Session Management** with configurable expiration  ```
+
+- ✅ **Rate Limiting** for API security
+
+- ✅ **Input Validation** and sanitization2. **Start the server:**
+
+- ✅ **Security Headers** with Helmet  ```bash
+
+- ✅ **Structured Logging** with color-coded levels  npm start
+
+- ✅ **O(1) Food Lookups** for optimal performance  ```
+
+- ✅ **In-memory Storage** for rapid prototyping
+
+- ✅ **Comprehensive Error Handling** with custom error classes  For development with auto-reload:
+
+- ✅ **Environment Configuration** with dotenv  ```bash
+
   npm run dev
-  ```
 
-3. **Server will be running at:**
-  ```
-  http://localhost:3000
-  ```
+## 📁 Project Structure  ```
 
-## 📚 API Endpoints
+
+
+```3. **Server will be running at:**
+
+caloricatcher-backend/  ```
+
+├── config/              # Configuration management  http://localhost:3000
+
+│   └── config.js  ```
+
+├── data/                # In-memory data storage
+
+│   └── foods.js## 📚 API Endpoints
+
+├── middleware/          # Express middleware
+
+│   ├── authMiddleware.js### Authentication
+
+│   └── validation.js
+
+├── routes/              # API routes#### Register User
+
+│   ├── auth.js```http
+
+│   ├── foods.jsPOST /auth/register
+
+│   └── meals.jsContent-Type: application/json
+
+├── utils/               # Utility functions
+
+│   ├── errors.js{
+
+│   ├── hash.js  "username": "john_doe",
+
+│   └── logger.js  "password": "securepassword123"
+
+├── frontend/            # Frontend files}
+
+│   ├── Frontend.html```
+
+│   ├── Frontend.js
+
+│   └── style.css**Response:**
+
+├── tests/               # Test files & Postman collection```json
+
+├── scripts/             # Utility scripts{
+
+├── docs/                # Documentation  "success": true,
+
+├── index.js             # Main server file  "message": "User registered successfully",
+
+└── package.json         # Dependencies  "data": {
+
+```    "username": "john_doe"
+
+  }
+
+## 🔌 API Endpoints}
+
+```
 
 ### Authentication
 
-#### Register User
-```http
-POST /auth/register
+- `POST /auth/register` - Register new user#### Login
+
+- `POST /auth/login` - Login and get token```http
+
+- `POST /auth/logout` - Logout (protected)POST /auth/login
+
 Content-Type: application/json
-
-{
-  "username": "john_doe",
-  "password": "securepassword123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "username": "john_doe"
-  }
-}
-```
-
-#### Login
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "username": "john_doe",
-  "password": "securepassword123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "uuid-token-here",
-    "username": "john_doe"
-  }
-}
-```
 
 ### Foods
 
-#### Get All Foods
-```http
-GET /foods
+- `GET /foods` - Get all available foods{
+
+  "username": "john_doe",
+
+### Meals (Protected)  "password": "securepassword123"
+
+- `POST /meals/logMeal` - Log a meal}
+
+- `GET /meals/progress` - Get user's progress```
+
+
+
+## 🔐 Environment Variables**Response:**
+
+```json
+
+```bash{
+
+PORT=3000  "success": true,
+
+NODE_ENV=development  "message": "Login successful",
+
+SESSION_EXPIRY_HOURS=24  "data": {
+
+RATE_LIMIT_WINDOW_MS=900000    "token": "uuid-token-here",
+
+RATE_LIMIT_MAX_REQUESTS=100    "username": "john_doe"
+
+CORS_ORIGIN=*  }
+
+```}
+
 ```
+
+## 🧪 Testing
+
+### Foods
+
+```bash
+
+# Run API tests#### Get All Foods
+
+npm test```http
+
+GET /foods
+
+# Run comprehensive verification```
+
+node tests/verify-all.js
 
 **Response:**
-```json
-{
-  "success": true,
-  "message": "Foods retrieved successfully",
-  "data": {
-    "foods": [
-      {
-        "name": "Apple",
-        "calories": 95,
-        "image": "https://..."
-      }
-    ],
-    "count": 15
-  }
-}
-```
 
-### Meals (Protected - Requires Authentication)
+# Run quick status check```json
+
+powershell -ExecutionPolicy Bypass -File scripts/quick-check.ps1{
+
+```  "success": true,
+
+  "message": "Foods retrieved successfully",
+
+## 📚 Documentation  "data": {
+
+    "foods": [
+
+- **[Complete README](docs/README.md)** - Detailed documentation      {
+
+- **[API Reference](docs/QUICK-REFERENCE.txt)** - Quick API reference        "name": "Apple",
+
+- **[Refinements](docs/REFINEMENTS.md)** - Recent improvements        "calories": 95,
+
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions        "image": "https://..."
+
+- **[Project Summary](docs/PROJECT-SUMMARY.md)** - Project overview      }
+
+    ],
+
+## 🚢 Deployment    "count": 15
+
+  }
+
+The backend is ready for deployment to:}
+
+- Render```
+
+- Railway  
+
+- Heroku### Meals (Protected - Requires Authentication)
+
+- Any Node.js hosting platform
 
 #### Log Meal
-```http
+
+See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.```http
+
 POST /meals/logMeal
-Authorization: Bearer <your-token>
+
+## 🛠️ Tech StackAuthorization: Bearer <your-token>
+
 Content-Type: application/json
 
-{
-  "foodName": "Apple"
-}
-```
+- **Runtime**: Node.js
+
+- **Framework**: Express.js{
+
+- **Authentication**: bcryptjs + UUID tokens  "foodName": "Apple"
+
+- **Validation**: express-validator}
+
+- **Security**: helmet + express-rate-limit```
+
+- **Configuration**: dotenv
 
 **Response:**
-```json
+
+## 📝 License```json
+
 {
-  "success": true,
+
+MIT License - Feel free to use for your projects!  "success": true,
+
   "message": "Meal logged successfully",
-  "data": {
+
+---  "data": {
+
     "meal": {
-      "id": "meal_1234567890_abc123",
+
+Built with ❤️ for CaloriCatcher Hackathon      "id": "meal_1234567890_abc123",
+
       "foodName": "Apple",
       "calories": 95,
       "image": "https://...",
@@ -172,7 +309,7 @@ Authorization: Bearer <your-token>
 ## 🏗️ Project Structure
 
 ```
-nutriwalk-backend/
+caloricatcher-backend/
 ├── index.js                 # Main server file
 ├── package.json             # Dependencies and scripts
 ├── data/
@@ -259,4 +396,4 @@ This is a hackathon project, but contributions are welcome! Feel free to fork an
 
 ---
 
-Built with ❤️ for NutriWalk Hackathon
+Built with ❤️ for CaloriCatcher Hackathon

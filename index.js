@@ -1,43 +1,82 @@
 /**
- * NutriWalk Backend Server
- * A clean, optimized, and hackathon-ready Node.js backend
+ * CaloriCatcher Backend Server
+ * A production-ready, secure, and optimized Node.js backend
  * 
  * Features:
- * - Token-based authentication with bcrypt password hashing
+ * - Token-based authentication with bcrypt password hashing and session expiration
  * - O(1) food lookups for optimal performance
  * - In-memory storage for rapid prototyping
  * - Modular architecture for easy expansion
  * - CORS enabled for frontend integration
- * - Comprehensive error handling
+ * - Comprehensive error handling with custom error classes
+ * - Input validation and sanitization
+ * - Rate limiting for security
+ * - Security headers with Helmet
+ * - Structured logging
+ * - Environment configuration
  */
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import config from './config/config.js';
+import logger from './utils/logger.js';
+import { ApiError } from './utils/errors.js';
 import authRoutes from './routes/auth.js';
 import foodsRoutes from './routes/foods.js';
 import mealsRoutes from './routes/meals.js';
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
 // ===========================
-// Middleware Configuration
+// Security Middleware
+// ===========================
+
+// Helmet - Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for development
+  crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting - Prevent abuse
+const limiter = rateLimit({
+  windowMs: config.rateLimitWindowMs,
+  max: config.rateLimitMaxRequests,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use('/auth/', limiter); // Apply to auth routes
+app.use('/meals/', limiter); // Apply to meal routes
+
+// ===========================
+// General Middleware
 // ===========================
 
 // CORS - Enable cross-origin requests from frontend
 app.use(cors({
-  origin: '*', // Allow all origins for hackathon (customize for production)
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: config.corsOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// JSON body parser
-app.use(express.json());
+// JSON body parser with size limit
+app.use(express.json({ limit: '10mb' }));
 
-// Request logging middleware (for debugging)
+// URL-encoded parser
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  logger.request(req);
   next();
 });
 
@@ -49,12 +88,15 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'NutriWalk Backend API is running! 🚀',
-    version: '1.0.0',
+    message: `${config.appName} is running! 🚀`,
+    version: config.appVersion,
+    environment: config.nodeEnv,
+    timestamp: new Date().toISOString(),
     endpoints: {
       auth: {
         register: 'POST /auth/register',
-        login: 'POST /auth/login'
+        login: 'POST /auth/login',
+        logout: 'POST /auth/logout [Protected]'
       },
       foods: {
         list: 'GET /foods'
@@ -81,17 +123,35 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: 'Endpoint not found',
-    path: req.path
+    path: req.path,
+    method: req.method
   });
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
+  // Log error
+  if (err.isOperational) {
+    logger.warn(`Operational error: ${err.message}`);
+  } else {
+    logger.error('Unhandled error:', err);
+  }
+  
+  // Handle ApiError instances
+  if (err instanceof ApiError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      errors: err.errors || undefined,
+      ...(config.isDevelopment && { stack: err.stack })
+    });
+  }
+  
+  // Handle other errors
   res.status(500).json({
     success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    message: config.isDevelopment ? err.message : 'Internal server error',
+    ...(config.isDevelopment && { stack: err.stack })
   });
 });
 
@@ -99,23 +159,45 @@ app.use((err, req, res, next) => {
 // Server Start
 // ===========================
 
-app.listen(PORT, () => {
-  console.log('\n🚀 NutriWalk Backend Server Started!');
-  console.log(`📡 Server running on port ${PORT}`);
-  console.log(`🌐 API URL: http://localhost:${PORT}`);
-  console.log(`📚 Documentation: http://localhost:${PORT}/`);
-  console.log('\n✅ Ready for requests!\n');
+const server = app.listen(PORT, () => {
+  logger.success('\n🚀 CaloriCatcher Backend Server Started!');
+  logger.info(`📡 Server running on port ${PORT}`);
+  logger.info(`🌐 API URL: http://localhost:${PORT}`);
+  logger.info(`📚 Documentation: http://localhost:${PORT}/`);
+  logger.info(`🔒 Environment: ${config.nodeEnv}`);
+  logger.info(`⏱️  Session expiry: ${config.sessionExpiryHours} hours`);
+  logger.success('\n✅ Ready for requests!\n');
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('\n👋 Shutting down gracefully...');
-  process.exit(0);
+// Graceful shutdown handler
+function gracefulShutdown(signal) {
+  logger.info(`\n👋 ${signal} received. Shutting down gracefully...`);
+  
+  server.close(() => {
+    logger.success('✅ Server closed successfully');
+    process.exit(0);
+  });
+  
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    logger.error('❌ Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+}
+
+// Handle termination signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  gracefulShutdown('uncaughtException');
 });
 
-process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down gracefully...');
-  process.exit(0);
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('unhandledRejection');
 });
 
 export default app;
